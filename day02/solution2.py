@@ -5,6 +5,7 @@ def intcode_to_list(intcode):
 
 
 def find_noun_and_verb(memory):
+    # just brute force it
     for noun in range(100):
         for verb in range(100):
         
