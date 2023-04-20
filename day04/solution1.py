@@ -19,11 +19,21 @@ def tests():
     assert not validate(223450)
     assert not validate(123789)
     
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("limits")
+    args = parser.parse_args()
+    limits = args.limits.split("-")
+    
+    return list(map(int, limits))
+    
     
 if __name__ == "__main__":
     tests()
     
-    count = sum(map(validate, range(183564, 657474 + 1)))
+    lower_range, upper_range = get_args()
+    count = sum(map(validate, range(lower_range, upper_range + 1)))
     
     print(count)
         
