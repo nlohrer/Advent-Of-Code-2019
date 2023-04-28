@@ -1,4 +1,4 @@
-# NOTE: You have to hard-code an input value of 1 into the intcode_computer.py file
+# NOTE: You have to hard-code an input value of 5 into the intcode_computer.py file
 
 import sys
 sys.path.append("..")

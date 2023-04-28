@@ -12,8 +12,26 @@ def mult(values, memory):
 
 def save(values, memory):
     value = values[0]
-    inp = 1
+    inp = 5
     memory[value] = inp # input, may vary later
+
+def jump_if_true(values, memory):
+    v1, v2 = values
+    if v1:
+       return v2
+
+def jump_if_false(values, memory):
+    v1, v2 = values
+    if not v1:
+        return v2
+
+def less_than(values, memory):
+    v1, v2, v3 = values
+    memory[v3] = int(v1 < v2)
+
+def equals(values, memory):
+    v1, v2, v3 = values
+    memory[v3] = int(v1 == v2)
 
 def stop(values, memory):
     assert False
@@ -22,7 +40,7 @@ def output(values, memory):
     value = values[0]
     console_output.append(value)
 
-OPCODES = {1: (3, 2, add), 2: (3, 2, mult), 3: (1, 0, save), 4: (1, -1, output), 99: (0, 0, stop)}
+OPCODES = {1: (3, 2, add), 2: (3, 2, mult), 3: (1, 0, save), 4: (1, -1, output), 99: (0, 0, stop), 5: (2, -1, jump_if_true), 6: (2, -1, jump_if_false), 7: (3, 2, less_than), 8: (3, 2, equals)}
 
 def intcode_to_list(intcode):
     op_list = intcode.split(',')    
@@ -55,8 +73,12 @@ def compute(memory):
         param_modes = fix_param_modes(param_modes, param_num, write_address_index)
         params = memory[pc+1 : pc+param_num + 1]
         values = get_values(params, param_modes, memory)
-        operation(values, memory)
-        pc += 1 + param_num
+
+        new_pc = operation(values, memory)
+        if new_pc is None:
+            pc += 1 + param_num
+        else:
+            pc = new_pc
 
 if __name__ == '__main__':
     data = '1002,4,3,4,33'
