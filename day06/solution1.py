@@ -1,7 +1,3 @@
-import sys
-sys.setrecursionlimit(500)
-
-
 def parse_input(data):
     orbits = [orbit.split(')') for orbit in data.split()]
     
@@ -22,8 +18,6 @@ def compute_orbit_tree(orbits):
 def compute_checksum(tree, level, start):
     if start not in tree.keys():
         return level
-
-    checksum = 0
     
     for child in tree[start]:
         checksum += compute_checksum(tree, level+1, child)
@@ -63,6 +57,4 @@ if __name__ == "__main__":
         
     checksum = check_input(data)
     print(checksum)
-    
-    
     
