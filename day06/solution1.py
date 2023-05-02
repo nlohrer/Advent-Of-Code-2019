@@ -19,6 +19,8 @@ def compute_checksum(tree, level, start):
     if start not in tree.keys():
         return level
     
+    checksum = 0
+    
     for child in tree[start]:
         checksum += compute_checksum(tree, level+1, child)
     
