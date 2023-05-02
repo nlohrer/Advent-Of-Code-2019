@@ -7,10 +7,6 @@ import intcode_computer as ic
 
 if __name__ == '__main__':
     with open('input', 'r') as data:
-        program = data.read()
-        
-    computer = ic.IntcodeComputer(program)
-    computer.compute([5])
-    
-    memory = computer.memory
-    print(memory[-1])
+        intcode = ic.intcode_to_list(data.read())
+    logs = ic.compute(intcode)
+    print(logs[-1])
