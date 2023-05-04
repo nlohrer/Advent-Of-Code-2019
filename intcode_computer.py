@@ -7,6 +7,10 @@ class IntcodeComputer:
         self.program = program
         self.console_output = []
         self._pc = 0
+        self._inp = None
+        self.paused = False
+        self.halted = False
+        self.memory = None
 
     def initialize_memory(self):
         if self.program is None:
@@ -25,6 +29,9 @@ class IntcodeComputer:
 
     def save(self, values):
         value = values[0]
+        if not self._inp:
+            self.paused = True
+            return
         inp = self._inp.pop()
         self.memory[value] = inp
 
@@ -69,25 +76,42 @@ class IntcodeComputer:
             new_param_modes[write_address_index] = 1
         return [int(param) for param in new_param_modes]
 
-    def compute(self, inp = None):
-        self._pc = 0
-        self._inp = inp
-        self.initialize_memory()
+    def computation_cycle(self):
         while True:
             instruction = str(self.memory[self._pc])
             param_modes, opcode = instruction[:-2], int(instruction[-2:])
             if opcode == 99:
-                return self.console_output
+                self.halted = True
+                break
             param_num, write_address_index, operation = self.OPCODES[opcode]
             param_modes = self.fix_param_modes(param_modes, param_num, write_address_index)
             params = self.memory[self._pc+1 : self._pc+param_num + 1]
             values = self.get_values(params, param_modes)
 
             new_pc = operation(self, values)
+            if self.paused:
+                break
+
             if new_pc is None:
                 self._pc += 1 + param_num
             else:
                 self._pc = new_pc
+        return self.halted
+
+    def continue_computation(self, inp = None):
+        if not self.paused:
+            return self.compute(inp)
+        self._inp = inp
+        self.paused = False
+        return self.computation_cycle()
+
+    def compute(self, inp = None):
+        self._pc = 0
+        self._inp = inp
+        self.paused = False
+        self.halted = False
+        self.initialize_memory()
+        return self.computation_cycle()
 
 if __name__ == '__main__':
     data = '1002,4,3,4,33'
