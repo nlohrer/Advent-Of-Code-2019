@@ -12,7 +12,7 @@ def test_phase_setting(computer, phase_setting_sequence):
         inp = computer.console_output[-1]
     return inp
 
-def find_optimal_phase_setting(computer):
+def find_optimal_thrust(computer):
     return max(map(lambda permutation: test_phase_setting(computer, permutation), permutations(range(5))))
 
 def tests():
@@ -32,5 +32,5 @@ if __name__ == '__main__':
     with open('input', 'r') as data:
         program = data.read()
     computer = ic.IntcodeComputer(program)
-    setting = find_optimal_phase_setting(computer)
-    print(setting)
+    max_output = find_optimal_thrust(computer)
+    print(max_output)
