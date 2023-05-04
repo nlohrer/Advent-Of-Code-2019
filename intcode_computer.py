@@ -9,6 +9,8 @@ class IntcodeComputer:
         self._pc = 0
 
     def initialize_memory(self):
+        if self.program is None:
+            raise Exception('No program found - need to either initialize computer with a program, or add a program after initialization')
         op_list = self.program.split(',')    
         op_list = [int(op) for op in op_list]
         self.memory = op_list
@@ -68,6 +70,7 @@ class IntcodeComputer:
         return [int(param) for param in new_param_modes]
 
     def compute(self, inp = None):
+        self._pc = 0
         self._inp = inp
         self.initialize_memory()
         while True:
