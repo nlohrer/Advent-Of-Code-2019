@@ -1,6 +1,5 @@
 class IntcodeComputer:
 
-    PARAM_MODES = {0: (lambda param, memory: memory[param]), 1: (lambda param, memory: param)}
     MAX_PARAMS = 3
 
     def __init__(self, program = None):
@@ -11,24 +10,32 @@ class IntcodeComputer:
         self.paused = False
         self.halted = False
         self.memory = None
+        self._relative_base = 0
+        self._paramater_mode = None
 
     def initialize_memory(self):
         if self.program is None:
             raise Exception('No program found - need to either initialize computer with a program, or add a program after initialization')
-        op_list = self.program.split(',')    
-        op_list = [int(op) for op in op_list]
+        op_list = self.program.split(',')
+        op_list = {index: int(op) for index, op in enumerate(op_list)}
         self.memory = op_list
 
     def add(self, values):
         v1, v2, v3 = values
+        if self._paramater_mode == '2':
+            v3 += self._relative_base
         self.memory[v3] = v1 + v2
 
     def mult(self, values):
         v1, v2, v3 = values
+        if self._paramater_mode == '2':
+            v3 += self._relative_base
         self.memory[v3] = v1 * v2
 
     def save(self, values):
         value = values[0]
+        if self._paramater_mode == '2':
+            value += self._relative_base
         if not self._inp:
             self.paused = True
             return
@@ -47,11 +54,15 @@ class IntcodeComputer:
 
     def less_than(self, values):
         v1, v2, v3 = values
-        self.memory[v3] = int(v1 < v2)
+        if self._paramater_mode == '2':
+            v3 += self._relative_base
+        self.memory[v3] = v1 < v2
 
     def equals(self, values):
         v1, v2, v3 = values
-        self.memory[v3] = int(v1 == v2)
+        if self._paramater_mode == '2':
+            v3 += self._relative_base
+        self.memory[v3] = v1 == v2
 
     def stop(self, values):
         assert False
@@ -60,12 +71,28 @@ class IntcodeComputer:
         value = values[0]
         self.console_output.append(value)
 
-    OPCODES = {1: (3, 2, add), 2: (3, 2, mult), 3: (1, 0, save), 4: (1, -1, output), 99: (0, 0, stop), 5: (2, -1, jump_if_true), 6: (2, -1, jump_if_false), 7: (3, 2, less_than), 8: (3, 2, equals)}
+    def relative_base_offset(self, values):
+        value = values[0]
+        self._relative_base += value
+
+    OPCODES = {1: (3, 2, add), 2: (3, 2, mult), 3: (1, 0, save), 4: (1, -1, output), 99: (0, 0, stop), 5: (2, -1, jump_if_true), 6: (2, -1, jump_if_false),
+                7: (3, 2, less_than), 8: (3, 2, equals), 9: (1, -1, relative_base_offset)}
+
+    def position_mode(self, param):
+        return self.memory.setdefault(param, 0)
+
+    def direct_mode(self, param):
+        return param
+
+    def relative_mode(self, param):
+        return self.memory.setdefault(self._relative_base + param, 0)
+
+    PARAM_MODES = {0: position_mode, 1: direct_mode, 2: relative_mode}
 
     def get_values(self, params, param_modes):
         values = []
         for param, param_mode in zip(params, param_modes):
-            values.append(self.PARAM_MODES[param_mode](param, self.memory))
+            values.append(self.PARAM_MODES[param_mode](self, param))
         return tuple(values)
 
     def fix_param_modes(self, param_modes, param_num, write_address_index):
@@ -73,8 +100,10 @@ class IntcodeComputer:
         new_param_modes = list(reversed(param_modes))
         new_param_modes += len_needed * [0]
         if write_address_index >= 0:
+            self._paramater_mode = new_param_modes[write_address_index]
             new_param_modes[write_address_index] = 1
         return [int(param) for param in new_param_modes]
+
 
     def computation_cycle(self):
         while True:
@@ -85,7 +114,7 @@ class IntcodeComputer:
                 break
             param_num, write_address_index, operation = self.OPCODES[opcode]
             param_modes = self.fix_param_modes(param_modes, param_num, write_address_index)
-            params = self.memory[self._pc+1 : self._pc+param_num + 1]
+            params = [self.memory.setdefault(self._pc + index + 1, 0) for index in range(param_num)]
             values = self.get_values(params, param_modes)
 
             new_pc = operation(self, values)
