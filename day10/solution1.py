@@ -1,5 +1,7 @@
 from numpy import sign
 from fractions import Fraction
+from functools import reduce
+from math import gcd
 
 def build_coordinates(input_map):
     asteroid_positions = set()
@@ -16,16 +18,15 @@ def number_of_detected_asteroids(asteroid_positions):
     for base_asteroid in asteroid_positions:
         target_directions = get_detection_directions(base_asteroid, asteroid_positions)
         
-        yield len(target_directions) - 1
+        yield (len(target_directions) - 1, base_asteroid)
+        # Here continue
 
 
 def get_detection_directions(base_asteroid, asteroid_positions):   
         base_x, base_y = base_asteroid
         detection_directions = set()
         
-        for target_asteroid in asteroid_positions:
-            target_x, target_y = target_asteroid
-            
+        for target_x, target_y in asteroid_positions:            
             x_distance = target_x - base_x
             y_distance = target_y - base_y
             
@@ -39,10 +40,11 @@ def get_direction(x_distance, y_distance):
         return (0, sign(y_distance))
         
     x_sign = sign(x_distance)
-    direction_fraction = Fraction(y_distance, x_distance)
+        
+    divisor = gcd(y_distance, x_distance)
     
-    reduced_direction = (direction_fraction.denominator * x_sign, 
-        direction_fraction.numerator)
+    reduced_direction = (x_distance//divisor, 
+        y_distance//divisor * x_sign)
     
     return reduced_direction
     
@@ -50,7 +52,16 @@ def get_direction(x_distance, y_distance):
 def get_maximal_asteroids_seen(input_map):
     asteroid_positions = build_coordinates(input_map)
     
-    return max(number_of_detected_asteroids(asteroid_positions))
+    return reduce(compare_asteroids, number_of_detected_asteroids(asteroid_positions))
+
+
+def compare_asteroids(a1, a2):
+    a1_num, a1_pos = a1
+    a2_num, a2_pos = a2
+    if a2_num > a1_num:
+        return a2
+    else:
+        return a1
 
 
 def tests():
@@ -60,7 +71,7 @@ def tests():
     test_outputs = [8, 33, 35, 41, 210]
         
     for input, output in zip(test_inputs, test_outputs):        
-        assert get_maximal_asteroids_seen(input) == output
+        assert get_maximal_asteroids_seen(input)[0] == output
         
         
 if __name__ == "__main__":
@@ -69,5 +80,5 @@ if __name__ == "__main__":
     with open("input", "r") as data:
         input_map = data.read()
         
-    print(get_maximal_asteroids_seen(input_map))
+    print(get_maximal_asteroids_seen(input_map)[0])
     
