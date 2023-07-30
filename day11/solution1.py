@@ -3,10 +3,10 @@ sys.path.append('..')
 import intcode_computer as ic
 from common import load_input
 
-def paint_panels(robot):
+def paint_panels(robot, starting_panel_color):
     direction = 0    #north
     position = (0, 0)
-    panels = dict()
+    panels = {position: starting_panel_color}
     while not robot.halted:
         color = panels.setdefault(position, 0)
         robot.continue_computation([color])
@@ -41,5 +41,5 @@ if __name__ == "__main__":
     program = load_input()
 
     robot = ic.IntcodeComputer(program)
-    panels = paint_panels(robot)
+    panels = paint_panels(robot, 0)
     print(len(panels.keys()))
