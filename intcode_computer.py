@@ -69,7 +69,7 @@ class IntcodeComputer:
 
     def output(self, values):
         value = values[0]
-        self.console_output.append(value)
+        self.console_output.append(int(value))
 
     def relative_base_offset(self, values):
         value = values[0]
